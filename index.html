@@ -28,7 +28,7 @@
       border: 2px solid white;
       border-radius: 8px;
       background-color: #333;
-      min-height: 100px;
+      min-height: 120px;
       position: relative;
       overflow: hidden;
     }
@@ -56,14 +56,15 @@
     }
 
     .dice {
-      font-size: 40px;
-      margin: 10px;
+      font-size: 60px;
+      margin: 15px;
+      text-shadow: 2px 2px 5px #000;
     }
 
     .fichas {
       display: flex;
       justify-content: center;
-      gap: 15px;
+      gap: 2F0px;
       flex-wrap: wrap;
     }
 
@@ -76,8 +77,8 @@
     }
 
     .ficha {
-      width: 65px;
-      height: 65px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       cursor: pointer;
       position: relative;
@@ -93,15 +94,14 @@
     }
 
     .ficha-pequena {
-      width: 35px;
-      height: 35px;
+      width: 45px;
+      height: 45px;
       position: absolute;
-      top: 60px;
+      top: 65px;
       z-index: 1;
       border-radius: 50%;
     }
 
-    /* Imagens reais de fichas na pasta 'fichas/' */
     .f10  { background-image: url('fichas/ficha10.png'); }
     .f50  { background-image: url('fichas/ficha50.png'); }
     .f100 { background-image: url('fichas/ficha100.png'); }
@@ -113,7 +113,7 @@
 <h1>Jogo de Dados - Fichas Reais</h1>
 <h2>Saldo: R$ <span id="saldo">1000</span></h2>
 
-<h3>Aposte nos números brancos (2x) e/ou vermelhos (4x)</h3>
+<h3>Aposte nos números brancos (2x por dado correspondente) e/ou vermelhos (4x)</h3>
 
 <div class="board white-row" id="white-row"></div>
 <div class="board red-row" id="red-row"></div>
@@ -128,7 +128,7 @@
 
 <button onclick="rolarDados()">🎲 Rolar Dados 🎲</button>
 
-<h3>🎲 Dados: <span id="resultado-dados"></span></h3>
+<h3 class="dice">🎲 Dados: <span id="resultado-dados"></span></h3>
 <h3 id="mensagem"></h3>
 
 <script>
@@ -146,7 +146,6 @@ let apostas = {
   red:   {1:[], 2:[], 3:[], 4:[], 5:[], 6:[]}
 };
 
-// Criar os números no tabuleiro
 for (let i = 1; i <= 6; i++) {
   whiteRow.innerHTML += `<div class="cell" data-num="${i}" data-cor="white">
       <div class="number">⚪ ${i}</div>
@@ -158,7 +157,6 @@ for (let i = 1; i <= 6; i++) {
   </div>`;
 }
 
-// Selecionar ficha
 document.querySelectorAll('.ficha').forEach(f => {
   f.addEventListener('click', () => {
     if (selecionada) selecionada.classList.remove('selecionada');
@@ -167,7 +165,6 @@ document.querySelectorAll('.ficha').forEach(f => {
   });
 });
 
-// Colocar ficha em casa
 document.querySelectorAll('.cell').forEach(cell => {
   cell.addEventListener('click', () => {
     const num = cell.dataset.num;
@@ -235,14 +232,17 @@ function rolarDados() {
   resultadoDados.innerText = `⚪ ${dado1} ⚪ ${dado2} 🔴 ${dadoVermelho}`;
   let ganho = 0;
 
-  // Fileira branca ganha com os três dados
-  [dado1, dado2, dadoVermelho].forEach(dado => {
-    apostas.white[dado].forEach(f => {
-      ganho += parseInt(f.dataset.valor) * 2;
-    });
+  const contagemBrancos = {};
+  [dado1, dado2, dadoVermelho].forEach(num => {
+    contagemBrancos[num] = (contagemBrancos[num] || 0) + 1;
   });
 
-  // Fileira vermelha só ganha com o dado vermelho
+  for (let num in contagemBrancos) {
+    apostas.white[num].forEach(f => {
+      ganho += parseInt(f.dataset.valor) * contagemBrancos[num];
+    });
+  }
+
   apostas.red[dadoVermelho].forEach(f => {
     ganho += parseInt(f.dataset.valor) * 4;
   });
